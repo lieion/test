@@ -10,23 +10,150 @@
 
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js"></script>
-
+    <script src="components/piechart.js"></script>
 
     <title>My Scatterplot</title>
-    
+    <style>
+        body {
+            background: #eee;
+            overflow-y: scroll;
+        }
+
+        .container {
+            width: 800px;
+            background: white;
+        }
+
+        .brushed {
+            stroke-width: 1;
+            stroke: gray;
+            r: 5;
+        }
+    </style>
 </head>
 
 <body>
-    <script>
-        let data, brushedData, scatterplot, histogram, dataTable;
+    <main class="container pb-3">
+        <div class="row pt-2">
+            <div class="col-1 text-end pe-2"><strong>Year:</strong></div>
+            <div class="col-11">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="y-encoding" value="2017" id="y-2017">
+                    <label class="form-check-label" for="x-sl">2017</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="y-encoding" value="2018" id="y-2018" checked>
+                    <label class="form-check-label" for="x-sw">2018</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="y-encoding" value="2019" id="y-2019">
+                    <label class="form-check-label" for="x-pl">2019</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="y-encoding" value="2020" id="y-2020">
+                    <label class="form-check-label" for="x-pw">2020</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="y-encoding" value="2021" id="y-2021">
+                    <label class="form-check-label" for="x-pw">2021</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="y-encoding" value="all" id="y-0">
+                    <label class="form-check-label" for="x-pw">All</label>
+                </div>
+            </div>
 
-        d3.csv("https://raw.githubusercontent.com/lieion/test/main/src/subway_2018.csv")
+        </div>
+        <div class="row">
+            <div class="col-1 text-end pe-2"><strong>Month:</strong></div>
+            <div class="col-11">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="m-encoding" value="1" id="m-jan"
+                        checked>
+                    <label class="form-check-label" for="y-sw">1月</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="m-encoding" value="2" id="m-feb">
+                    <label class="form-check-label" for="y-pl">2月</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="m-encoding" value="3" id="m-mar">
+                    <label class="form-check-label" for="y-pw">3月</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="m-encoding" value="4" id="m-apr">
+                    <label class="form-check-label" for="y-pw">4月</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="m-encoding" value="5" id="m-may">
+                    <label class="form-check-label" for="y-pw">5月</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="m-encoding" value="6" id="m-jun">
+                    <label class="form-check-label" for="y-pw">6月</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="m-encoding" value="7" id="m-jul">
+                    <label class="form-check-label" for="y-pw">7月</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="m-encoding" value="8" id="m-aug">
+                    <label class="form-check-label" for="y-pw">8月</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="m-encoding" value="9" id="m-sep">
+                    <label class="form-check-label" for="y-pw">9月</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="m-encoding" value="10" id="m-oct">
+                    <label class="form-check-label" for="y-pw">10月</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="m-encoding" value="11" id="m-nov">
+                    <label class="form-check-label" for="y-pw">11月</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="m-encoding" value="12" id="m-dec">
+                    <label class="form-check-label" for="y-pw">12月</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="m-encoding" value="0" id="m-all">
+                    <label class="form-check-label" for="y-pw">All</label>
+                </div>
+
+            </div>
+        </div>
+        <div class="text-center">
+            <svg width="400" height="400" id="piechart">
+            </svg>
+            <!-- <div class="tooltip bs-tooltip-top show" id="pc-tooltip" role="tooltip" style="display:none">
+                <div class="tooltip-arrow"></div>
+                <div class="tooltip-inner">
+                    Some tooltip text!
+                </div>
+            </div> -->
+
+        </div>
+    </main>
+    <script>
+        let data,piechart;
+        function updatePieChart() {
+            let yVar = d3.select("input[type=radio][name=y-encoding]:checked").property("value");
+            let mVar = d3.select("input[type=radio][name=m-encoding]:checked").property("value");
+            piechart.update(yVar, mVar);
+        }
+
+
+        //derive csv from github save
+        leturl= "https://raw.githubusercontent.com/lieion/test/main/src/subway_"+"2018"+".csv";
+        d3.csv(leturl)
         .then(csvData => {
             csvData.forEach(d => {
-                d["날짜"] = +d["날짜"];
-                d["역번호"] = +d["호선"];
-                d["역명"] = +d["역번호"];
-                d["구분"] = +d["구분"];
+                // d["날짜"] = +d["날짜"];
+                // d["호선"] = +d["호선"];
+                // d["역번호"] = +d["역번호"];
+                // d["역명"] = +d["역명"];
+                // d["구분"] = +d["구분"];
                 d["05~06"] = +d["05~06"];
                 d["06~07"] = +d["06~07"];
                 d["07~08"] = +d["07~08"];
@@ -46,13 +173,20 @@
                 d["21~22"] = +d["21~22"];
                 d["22~23"] = +d["22~23"];
                 d["23~24"] = +d["23~24"];
-                d["00~01"] = +d["00~01"];
-                d["합계"] = +d["합계"];
+                d["24~01"] = +d["24~01"];
+                d["Total"] = +d["Total"];
             });
             data = csvData;
-            console.log(data[1]["05~06"])
-            window.alert(data[1]["05~06"])
-        })
+
+            piechart = new PieChart("#piechart", "#pc-tooltip", data);
+            piechart.initialize();
+
+            updatePieChart();
+            d3.selectAll("input[type=radio][name=y-encoding]").on("change", updatePieChart);
+            d3.selectAll("input[type=radio][name=m-encoding]").on("change", updatePieChart);
+        });
+        
+        
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"

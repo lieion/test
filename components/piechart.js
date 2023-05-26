@@ -39,28 +39,35 @@ class PieChart {
     update(year,month) {
         // console.log(month)
         let subwayLine, sumPeople;
-        subwayLine = [...new Set(this.data.map(d=> d["호선"]))]
-        if(month === "0")
+        if(+year===0)
         {
-            sumPeople = subwayLine.map(s=>{
-                return {
-                    subwayLine: s,
-                    inSum: d3.sum(this.data.filter(d=> (d["호선"] === s && d["구분"] === "승차")), d=>d["Total"]),
-                    outSum: d3.sum(this.data.filter(d=> (d["호선"] === s && d["구분"] === "하차")), d=>d["Total"]),
-                    totalSum: d3.sum(this.data.filter(d=> (d["호선"] === s )), d=>d["Total"]),
-                }
-            })
+
         }
         else
         {
-            sumPeople = subwayLine.map(s=>{
-                return {
-                    subwayLine: s,
-                    inSum: d3.sum(this.data.filter(d=> (d["호선"] === s && d["구분"] === "승차") && ((+d["날짜"].split("-")[1])=== +month)), d=>d["Total"]),
-                    outSum: d3.sum(this.data.filter(d=> (d["호선"] === s && d["구분"] === "하차") && ((+d["날짜"].split("-")[1])=== +month)), d=>d["Total"]),
-                    totalSum: d3.sum(this.data.filter(d=> (d["호선"] === s) && ((+d["날짜"].split("-")[1])=== +month)), d=>d["Total"]),
-                }
-            })
+            subwayLine = [...new Set(this.data[+year-2017].map(d=> d["호선"]))]
+            if(month === "0")
+            {
+                sumPeople = subwayLine.map(s=>{
+                    return {
+                        subwayLine: s,
+                        inSum: d3.sum(this.data[+year-2017].filter(d=> (d["호선"] === s && d["구분"] === "승차")), d=>d["Total"]),
+                        outSum: d3.sum(this.data[+year-2017].filter(d=> (d["호선"] === s && d["구분"] === "하차")), d=>d["Total"]),
+                        totalSum: d3.sum(this.data[+year-2017].filter(d=> (d["호선"] === s )), d=>d["Total"]),
+                    }
+                })
+            }
+            else
+            {
+                sumPeople = subwayLine.map(s=>{
+                    return {
+                        subwayLine: s,
+                        inSum: d3.sum(this.data[+year-2017].filter(d=> (d["호선"] === s && d["구분"] === "승차") && ((+d["날짜"].split("-")[1])=== +month)), d=>d["Total"]),
+                        outSum: d3.sum(this.data[+year-2017].filter(d=> (d["호선"] === s && d["구분"] === "하차") && ((+d["날짜"].split("-")[1])=== +month)), d=>d["Total"]),
+                        totalSum: d3.sum(this.data[+year-2017].filter(d=> (d["호선"] === s) && ((+d["날짜"].split("-")[1])=== +month)), d=>d["Total"]),
+                    }
+                })
+            }
         }
         // console.log(sumPeople)
         let idata = sumPeople.map(function(line){

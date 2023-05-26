@@ -143,41 +143,43 @@
             piechart.update(yVar, mVar);
         }
 
-
+        
         //derive csv from github save
-        leturl= "https://raw.githubusercontent.com/lieion/test/main/src/subway_"+"2017"+".csv";
-        d3.csv(leturl)
+        Promise.all([
+            d3.csv("https://raw.githubusercontent.com/lieion/test/main/src/subway_2017.csv"),
+            d3.csv("https://raw.githubusercontent.com/lieion/test/main/src/subway_2018.csv"),
+            d3.csv("https://raw.githubusercontent.com/lieion/test/main/src/subway_2019.csv"),
+            d3.csv("https://raw.githubusercontent.com/lieion/test/main/src/subway_2020.csv"),
+            d3.csv("https://raw.githubusercontent.com/lieion/test/main/src/subway_2021.csv"),
+            //d3.csv("https://raw.githubusercontent.com/lieion/test/main/src/subway_2022.csv"),
+        ])
         .then(csvData => {
-            csvData.forEach(d => {
-                // d["날짜"] = +d["날짜"];
-                // d["호선"] = +d["호선"];
-                // d["역번호"] = +d["역번호"];
-                // d["역명"] = +d["역명"];
-                // d["구분"] = +d["구분"];
-                d["05~06"] = +d["05~06"];
-                d["06~07"] = +d["06~07"];
-                d["07~08"] = +d["07~08"];
-                d["08~09"] = +d["08~09"];
-                d["09~10"] = +d["09~10"];
-                d["10~11"] = +d["10~11"];
-                d["11~12"] = +d["11~12"];
-                d["12~13"] = +d["12~13"];
-                d["13~14"] = +d["13~14"];
-                d["14~15"] = +d["14~15"];
-                d["15~16"] = +d["15~16"];
-                d["16~17"] = +d["16~17"];
-                d["17~18"] = +d["17~18"];
-                d["18~19"] = +d["18~19"];
-                d["19~20"] = +d["19~20"];
-                d["20~21"] = +d["20~21"];
-                d["21~22"] = +d["21~22"];
-                d["22~23"] = +d["22~23"];
-                d["23~24"] = +d["23~24"];
-                d["24~01"] = +d["24~01"];
-                d["Total"] = +d["Total"];
+            csvData.forEach(f => {
+                f.forEach(d=>{
+                    d["05~06"] = +d["05~06"];
+                    d["06~07"] = +d["06~07"];
+                    d["07~08"] = +d["07~08"];
+                    d["08~09"] = +d["08~09"];
+                    d["09~10"] = +d["09~10"];
+                    d["10~11"] = +d["10~11"];
+                    d["11~12"] = +d["11~12"];
+                    d["12~13"] = +d["12~13"];
+                    d["13~14"] = +d["13~14"];
+                    d["14~15"] = +d["14~15"];
+                    d["15~16"] = +d["15~16"];
+                    d["16~17"] = +d["16~17"];
+                    d["17~18"] = +d["17~18"];
+                    d["18~19"] = +d["18~19"];
+                    d["19~20"] = +d["19~20"];
+                    d["20~21"] = +d["20~21"];
+                    d["21~22"] = +d["21~22"];
+                    d["22~23"] = +d["22~23"];
+                    d["23~24"] = +d["23~24"];
+                    d["24~01"] = +d["24~01"];
+                    d["Total"] = +d["Total"];
+                });
             });
             data = csvData;
-
             piechart = new PieChart("#piechart", "#pc-tooltip", data);
             piechart.initialize();
 

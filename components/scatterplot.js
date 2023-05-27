@@ -114,9 +114,11 @@ class Scatterplot {
         let selection = event.selection;
 
         this.circles.classed("brushed", d => this.isBrushed(d, selection));
-
+        console.log(this.circles.classed("brushed", d => this.isBrushed(d, selection)));
         if (this.handlers.brush)
+            console.log(this.data.filter(d => this.isBrushed(d, selection)));
             this.handlers.brush(this.data.filter(d => this.isBrushed(d, selection)));
+            console.log(this.handlers.brush);
     }
 
     on(eventType, handler) {

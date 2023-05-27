@@ -10,6 +10,7 @@
 
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js"></script>
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
     <script src="components/piechart.js"></script>
 
     <title>My Scatterplot</title>
@@ -56,6 +57,10 @@
                 <div class="form-check form-check-inline">
                     <input class="form-check-input" type="radio" name="y-encoding" value="2021" id="y-2021">
                     <label class="form-check-label" for="x-pw">2021</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="y-encoding" value="2022" id="y-2022">
+                    <label class="form-check-label" for="x-pw">2022</label>
                 </div>
                 <div class="form-check form-check-inline">
                     <input class="form-check-input" type="radio" name="y-encoding" value="all" id="y-0">
@@ -126,21 +131,26 @@
         <div class="text-center">
             <svg width="400" height="400" id="piechart">
             </svg>
-            <!-- <div class="tooltip bs-tooltip-top show" id="pc-tooltip" role="tooltip" style="display:none">
+            <div class="tooltip bs-tooltip-top show" id="pc-tooltip" role="tooltip" style="display:none">
                 <div class="tooltip-arrow"></div>
                 <div class="tooltip-inner">
                     Some tooltip text!
                 </div>
-            </div> -->
+            </div>
 
         </div>
     </main>
     <script>
-        let data,piechart;
+        let data,piechart,clickedLines;
+        let clickedNum=0;
         function updatePieChart() {
             let yVar = d3.select("input[type=radio][name=y-encoding]:checked").property("value");
             let mVar = d3.select("input[type=radio][name=m-encoding]:checked").property("value");
             piechart.update(yVar, mVar);
+        }
+
+        function updateSubHistogram(){
+            histogram.update(clickedLines,yVar,mVar);
         }
 
         
@@ -151,7 +161,7 @@
             d3.csv("https://raw.githubusercontent.com/lieion/test/main/src/subway_2019.csv"),
             d3.csv("https://raw.githubusercontent.com/lieion/test/main/src/subway_2020.csv"),
             d3.csv("https://raw.githubusercontent.com/lieion/test/main/src/subway_2021.csv"),
-            //d3.csv("https://raw.githubusercontent.com/lieion/test/main/src/subway_2022.csv"),
+            d3.csv("https://raw.githubusercontent.com/lieion/test/main/src/subway_2022.csv"),
         ])
         .then(csvData => {
             csvData.forEach(f => {
@@ -186,6 +196,12 @@
             updatePieChart();
             d3.selectAll("input[type=radio][name=y-encoding]").on("change", updatePieChart);
             d3.selectAll("input[type=radio][name=m-encoding]").on("change", updatePieChart);
+
+            piechart.on("click", (clickedItems) => {
+                clickedLines=clickedItems;
+                console.log(clickedLines);
+                //updateSubHistogram()
+            });
         });
         
         

@@ -30,7 +30,7 @@ class Histogram {
     update(data, xVar) {
         const categories = [...new Set(data.map(d => d[xVar]))]
         const counts = {}
-
+        console.log(categories)
         categories.forEach(c => {
             counts[c] = data.filter(d => d[xVar] === c).length;
         })

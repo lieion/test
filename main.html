@@ -12,8 +12,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js"></script>
     <script src="https://unpkg.com/@popperjs/core@2"></script>
     <script src="components/piechart.js"></script>
+    <script src="components/subhistogram.js"></script>
+    <script src="components/subhistogram2.js"></script>
+    <script src="components/subscatterplot.js"></script>
 
-    <title>My Scatterplot</title>
+    <title>Final Project</title>
     <style>
         body {
             background: #eee;
@@ -21,7 +24,7 @@
         }
 
         .container {
-            width: 800px;
+            width: 1300px;
             background: white;
         }
 
@@ -62,10 +65,10 @@
                     <input class="form-check-input" type="radio" name="y-encoding" value="2022" id="y-2022">
                     <label class="form-check-label" for="x-pw">2022</label>
                 </div>
-                <div class="form-check form-check-inline">
+                <!-- <div class="form-check form-check-inline">
                     <input class="form-check-input" type="radio" name="y-encoding" value="all" id="y-0">
                     <label class="form-check-label" for="x-pw">All</label>
-                </div>
+                </div> -->
             </div>
 
         </div>
@@ -121,13 +124,14 @@
                     <input class="form-check-input" type="radio" name="m-encoding" value="12" id="m-dec">
                     <label class="form-check-label" for="y-pw">12月</label>
                 </div>
-                <div class="form-check form-check-inline">
+                <!-- <div class="form-check form-check-inline">
                     <input class="form-check-input" type="radio" name="m-encoding" value="0" id="m-all">
                     <label class="form-check-label" for="y-pw">All</label>
-                </div>
+                </div> -->
 
             </div>
         </div>
+        <br>
         <div class="text-center">
             <svg width="400" height="400" id="piechart">
             </svg>
@@ -137,23 +141,98 @@
                     Some tooltip text!
                 </div>
             </div>
+        </div>
+        
+        <div class="text-center">
+            <svg width="400" height="400" id="histogram">
+            </svg>
+            <svg width="400" height="400" id="histogram2">
+            </svg>
 
+        </div>
+
+        <div class="text-center">
+            <svg width="400" height="400", id="scatterplot">
+
+            </svg>
         </div>
     </main>
     <script>
-        let data,piechart,clickedLines;
-        let clickedNum=0;
+        let data,piechart,clickedLines,histogram,histogram2;
+        let clickedNum=-1;
+        let monthyear = -1; //month -1 year 1
+
+        function updateSubHistogramByRadioLine(){
+            let yVar = d3.select("input[type=radio][name=y-encoding]:checked").property("value");
+            let mVar = d3.select("input[type=radio][name=m-encoding]:checked").property("value");
+            histogram2.update({},yVar,mVar,clickedLines[0]["호선"]);
+        }
+        function updateSubHistogramByRadioYear(){
+            let yVar = d3.select("input[type=radio][name=y-encoding]:checked").property("value");
+            let mVar = d3.select("input[type=radio][name=m-encoding]:checked").property("value");
+            histogram2.update({},yVar,mVar,0);
+        }
+
+
+
+
+        function updateSubHistogram(){
+            // console.log(data[+y])
+            let yVar = d3.select("input[type=radio][name=y-encoding]:checked").property("value");
+            let mVar = d3.select("input[type=radio][name=m-encoding]:checked").property("value");
+            histogram.update(clickedLines,yVar,mVar,1);
+        }
+        function updateSubHistogramTotal(){
+            // console.log(data[+y])
+            let yVar = d3.select("input[type=radio][name=y-encoding]:checked").property("value");
+            let mVar = d3.select("input[type=radio][name=m-encoding]:checked").property("value");
+            let zVar = data[+yVar-2017].filter(d=> (+d["날짜"].split("-")[1]===+mVar))
+            histogram.update(zVar,yVar,mVar,1);
+        }
+
         function updatePieChart() {
+            console.log("h")
             let yVar = d3.select("input[type=radio][name=y-encoding]:checked").property("value");
             let mVar = d3.select("input[type=radio][name=m-encoding]:checked").property("value");
             piechart.update(yVar, mVar);
+            clickedNum = -1
         }
-
-        function updateSubHistogram(){
-            histogram.update(clickedLines,yVar,mVar);
-        }
-
         
+        function updateHistorgramHighlight(){
+            let mVar = d3.select("input[type=radio][name=m-encoding]:checked").property("value");
+            histogram2.fillingHighlight(mVar)
+        }
+
+        function updateSubScatterPlot(){
+
+        }
+        
+        function ychange()
+        {
+            updatePieChart()
+            updateSubHistogramByRadioYear()
+            updateSubHistogramTotal()
+        }
+
+        function mchange()
+        {
+            console.log(clickedNum)
+            if(clickedNum===1)
+            {
+                updatePieChart()
+                updateSubHistogramByRadioYear()
+                updateSubHistogramTotal()
+                clickedNum=0
+            }
+            else{
+                updatePieChart()
+                updateHistorgramHighlight()
+                updateSubHistogramTotal()
+            }
+        }
+        
+  
+
         //derive csv from github save
         Promise.all([
             d3.csv("https://raw.githubusercontent.com/lieion/test/main/src/subway_2017.csv"),
@@ -194,14 +273,29 @@
             piechart.initialize();
 
             updatePieChart();
-            d3.selectAll("input[type=radio][name=y-encoding]").on("change", updatePieChart);
-            d3.selectAll("input[type=radio][name=m-encoding]").on("change", updatePieChart);
+            
 
             piechart.on("click", (clickedItems) => {
+                clickedNum = 1
                 clickedLines=clickedItems;
-                console.log(clickedLines);
-                //updateSubHistogram()
+                updateSubHistogram();
+                updateSubHistogramByRadioLine();
+                // updateSubScatterPlot();
+                // console.log(clickedLines);
+                
             });
+
+            histogram2 = new SubHistogram2("#histogram",data);
+            histogram2.initialize();
+
+            updateSubHistogramByRadioYear();
+
+            histogram = new SubHistogram("#histogram2",data);
+            histogram.initialize();
+            updateSubHistogramTotal();
+            
+            d3.selectAll("input[type=radio][name=y-encoding]").on("change", ychange);
+            d3.selectAll("input[type=radio][name=m-encoding]").on("change", mchange);
         });
         
         

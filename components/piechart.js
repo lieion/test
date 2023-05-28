@@ -2,7 +2,7 @@ class PieChart {
     
 
     margin = {
-        top: 10, right: 10, bottom: 40, left: 40
+        top: 10, right: 100, bottom: 40, left: 40
     }
 
     constructor(svg, tooltip, data, width = 250, height = 250) {
@@ -17,7 +17,9 @@ class PieChart {
     initialize() {
         this.svg = d3.select(this.svg);
         this.tooltip = d3.select(this.tooltip);
-        this.color = d3.scaleOrdinal([
+        this.color = d3.scaleOrdinal()
+        .domain(["1호선","2호선","3호선","4호선","5호선","6호선","7호선","8호선","9호선"])
+        .range([
             "#0052A4",
             "#00A84D",
             "#EF7C1C",
@@ -37,16 +39,16 @@ class PieChart {
         this.g = this.svg
             .append("g")
             .attr("transform",`translate(${this.width / 2}, ${this.height / 2})`);
-        this.legend = this.svg.append("g")
-            .style("display", "inline")
-            .style("font-size", ".8em")
-            .attr("transform", `translate(${this.width + this.margin.left + 10}, ${this.height / 2})`);
+        this.legend = this.svg.append("g").style("font-size", ".8em")
+        .attr("transform", `translate(${this.width + this.margin.left + 10}, ${this.height / 8})`)
+        .call(d3.legendColor().scale(this.color));
+        this.arcs;
     }
 
     update(year,month) {
         // console.log(month)
         let subwayLine, sumPeople;
-        console.log(year)
+        // console.log(year)
         if(year==="all")
         {
             subwayLine = [...new Set(this.data[5].map(d=> d["호선"]))]
@@ -75,7 +77,7 @@ class PieChart {
                         d3.sum(this.data[5].filter(d=> (d["호선"] === s )), d=>d["Total"]),
                     }
                 })
-                console.log(sumPeople)
+                // console.log(sumPeople)
             }
             else
             {
@@ -131,7 +133,7 @@ class PieChart {
             }
         }
         
-        console.log(sumPeople)
+        // console.log(sumPeople)
         let idata = sumPeople.map(function(line){
             return line.inSum; 
         });
@@ -146,21 +148,22 @@ class PieChart {
         
         // console.log(tdata)
 
-        console.log(this.pie(tdata))
-        const arcs = this.g
+        // console.log(this.pie(tdata))
+        //this.color.domain(subwayLine);
+        
+
+        this.arcs = this.g
             .selectAll("arc")
             .data(this.pie(tdata))
             .enter()
             .append("g")
             .attr("class", "arc");
-        arcs
+        this.arcs
             .append("path")
             .attr("fill", (d, i) => this.color(i))
             .attr("d", this.arc)
             .on("click",(e,d)=>{
-                console.log((this.pie(tdata).findIndex((element)=>element.index === (d.index)))+1);
-                clickedNum=(this.pie(tdata).findIndex((element)=>element.index === (d.index)));
-                this.clickedPie(tdata,d,e);
+                this.clickedPie(d.index,(this.pie(tdata).findIndex((element)=>element.index === (d.index))),subwayLine.map(s=>{return this.data[+year-2017].filter(d=> (d["호선"] === s) && ((+d["날짜"].split("-")[1])=== +month))})[(this.pie(tdata).findIndex((element)=>element.index === (d.index)))],e);
             })
             .on("mouseover", (e, d) => {
                 // console.log(d)
@@ -190,13 +193,25 @@ class PieChart {
             });
         // console.log("Where?")
         
-        
+   
+            
         
     }
 
-    clickedPie(tdata,d,event){
+    clickedPie(tindex,ai,dt,event){
+        this.arcs
+            .select("path")
+            .attr("fill","lightgray")
+        this.arcs
+                .filter(d=>d.index === tindex)
+                .select("path")
+                .attr("fill", this.color(ai))
+                
+
+        // let highlightedRect = this.arcs.selectAll("arc").filter((d,i) => i+1 === +index);
+        // highlightedRect.attr("fill",this.color(index))
         if(this.handlers.click){
-            this.handlers.click((this.pie(tdata).findIndex((element)=>element.index === (d.index))))
+            this.handlers.click(dt)
         }
     }
 

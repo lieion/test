@@ -31,8 +31,6 @@ class PC {
         this.lines = this.container.append("g");
         this.focusedLines = this.container.append("g");
 
-        this.zScale = d3.scaleOrdinal().range(d3.schemeCategory10)
-
         this.svg
             .attr("width", this.width + this.margin.left + this.margin.right)
             .attr("height", this.height + this.margin.top + this.margin.bottom);

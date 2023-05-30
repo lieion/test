@@ -1,15 +1,17 @@
-class Scatterplot {
+class SubScatterplot {
     margin = {
-        top: 10, right: 100, bottom: 40, left: 40
+        top: 10, right: 10, bottom: 40, left: 80
     }
 
-    constructor(svg, tooltip, data, width = 250, height = 250) {
+    constructor(svg, tooltip, width = 600, height = 600) {
         this.svg = svg;
         this.tooltip = tooltip;
-        this.data = data;
         this.width = width;
         this.height = height;
         this.handlers = {};
+        this.resultofin =  0;
+        this.resultofout = 0;
+        this.inPeople = {};
     }
 
     initialize() {
@@ -19,7 +21,7 @@ class Scatterplot {
         this.xAxis = this.svg.append("g");
         this.yAxis = this.svg.append("g");
         this.legend = this.svg.append("g");
-
+        
         this.xScale = d3.scaleLinear();
         this.yScale = d3.scaleLinear();
         this.zScale = d3.scaleOrdinal().range(d3.schemeCategory10)
@@ -30,29 +32,51 @@ class Scatterplot {
 
         this.container.attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
-        this.brush = d3.brush()
-            .extent([[0, 0], [this.width, this.height]])
-            .on("start brush", (event) => {
-                this.brushCircles(event);
-            })
+       
     }
 
-    update(xVar, yVar, colorVar, useColor) {
-        this.xVar = xVar;
-        this.yVar = yVar;
+    update(indata,type) {
+        let stationname = [...new Set(indata.map(d=> d["역명"]))]
+        let gdatax={},gdatay={}
+        if(type==="total"){
+            this.gdatax = indata.filter(d=> d["구분"]==="승차")
+            this.gdatay = indata.filter(d=> d["구분"]==="하차")
+        }
+        else if(type==="midweek"){
+            this.gdatax = indata.filter(d=> (d["구분"]==="승차" && this.getMonToSun(d["날짜"])===0))
+            this.gdatay = indata.filter(d=> (d["구분"]==="하차" && this.getMonToSun(d["날짜"])===0))
+        }
+        else if(type==="weekend"){
+            this.gdatax = indata.filter(d=> (d["구분"]==="승차" && this.getMonToSun(d["날짜"])===1))
+            this.gdatay = indata.filter(d=> (d["구분"]==="하차" && this.getMonToSun(d["날짜"])===1))
+        }
+        let nowindex=0
+        this.inPeople = stationname.map(
+            s=>{
+                return {
+                    line: indata[0]["호선"],
+                    name: s,
+                    index: nowindex++,
+                    outvalue: d3.sum(this.gdatay.filter(d=>(d["역명"]===s)),d=>d["Total"]),
+                    invalue: d3.sum(this.gdatax.filter(d=>(d["역명"]===s)),d=>d["Total"])
+        }});
 
-        this.xScale.domain(d3.extent(this.data, d => d[xVar])).range([0, this.width]);
-        this.yScale.domain(d3.extent(this.data, d => d[yVar])).range([this.height, 0]);
-        this.zScale.domain([...new Set(this.data.map(d => d[colorVar]))])
-        console.log(this.zScale)
-        this.container.call(this.brush);
+        
+        this.xScale.domain(d3.extent(this.inPeople.map(d=> d.invalue))).range([0, this.width]);
+        this.yScale.domain(d3.extent(this.inPeople.map(d=> d.outvalue))).range([this.height, 0]);
+        this.zScale.domain(stationname)
 
         this.circles = this.container.selectAll("circle")
-            .data(data)
+            .data(this.inPeople)
             .join("circle")
+            .on("click",(e,d)=>{
+                this.resultofin = d.invalue;
+                this.resultofout = d.outvalue;
+                this.circleclick(indata,d,e);
+            })
             .on("mouseover", (e, d) => {
                 this.tooltip.select(".tooltip-inner")
-                    .html(`${this.xVar}: ${d[this.xVar]}<br />${this.yVar}: ${d[this.yVar]}`);
+                    .html(`${d.name}<br/>승차: ${d.invalue}<br />하차: ${d.outvalue}`);
 
                 Popper.createPopper(e.target, this.tooltip.node(), {
                     placement: 'top',
@@ -71,13 +95,13 @@ class Scatterplot {
             .on("mouseout", (d) => {
                 this.tooltip.style("display", "none");
             });
-
         this.circles
             .transition()
-            .attr("cx", d => this.xScale(d[xVar]))
-            .attr("cy", d => this.yScale(d[yVar]))
-            .attr("fill", useColor ? d => this.zScale(d[colorVar]) : "black")
+            .attr("cx", (d,i)=>this.xScale(d.invalue))
+            .attr("cy", (d,i)=>this.yScale(d.outvalue))
+            .attr("fill", "black")
             .attr("r", 3)
+            
 
         this.xAxis
             .attr("transform", `translate(${this.margin.left}, ${this.margin.top + this.height})`)
@@ -89,39 +113,34 @@ class Scatterplot {
             .transition()
             .call(d3.axisLeft(this.yScale));
 
-        if (useColor) {
-            this.legend
-                .style("display", "inline")
-                .style("font-size", ".8em")
-                .attr("transform", `translate(${this.width + this.margin.left + 10}, ${this.height / 2})`)
-                .call(d3.legendColor().scale(this.zScale))
-        }
-        else {
-            this.legend.style("display", "none");
-        }
     }
 
-    isBrushed(d, selection) {
-        let [[x0, y0], [x1, y1]] = selection; // destructuring assignment
-        let x = this.xScale(d[this.xVar]);
-        let y = this.yScale(d[this.yVar]);
 
-        return x0 <= x && x <= x1 && y0 <= y && y <= y1;
+    circleclick(alldata,clickedData, event){
+        this.circles
+            .transition()
+            .attr("fill","black")
+            .attr("r", 3)
+        this.circles
+                .filter(d=>d.index === clickedData.index)
+                .transition()
+                .attr("fill", "red")
+                .attr("r", 5)
+        if(this.handlers.click){
+
+            this.handlers.click(alldata.filter(d=>d["역명"] ===clickedData.name))
+        }
     }
-
-    // this method will be called each time the brush is updated.
-    brushCircles(event) {
-        let selection = event.selection;
-
-        this.circles.classed("brushed", d => this.isBrushed(d, selection));
-        console.log(this.circles.classed("brushed", d => this.isBrushed(d, selection)));
-        if (this.handlers.brush)
-            console.log(this.data.filter(d => this.isBrushed(d, selection)));
-            this.handlers.brush(this.data.filter(d => this.isBrushed(d, selection)));
-            console.log(this.handlers.brush);
+    getMonToSun(dt){
+        let dayweek= new Date(dt).getDay(); 
+        return (dayweek>0 && dayweek<6) ? 0 : 1;
     }
 
     on(eventType, handler) {
         this.handlers[eventType] = handler;
     }
+
+
+  
+
 }

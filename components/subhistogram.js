@@ -50,15 +50,15 @@ class SubHistogram {
         })
         this.xScale.domain(categories).range([0, this.width]).padding(0.3);
         this.yScale.domain([0, d3.max(Object.values(counts_totalSum))]).range([this.height, 0]);
-
         this.container.selectAll("rect")
             .data(categories)
             .join("rect")
+            .transition()
             .attr("x", d => this.xScale(d))
             .attr("y", d => this.yScale(counts_totalSum[d]))
             .attr("width", this.xScale.bandwidth())
             .attr("height", d => this.height - this.yScale(counts_totalSum[d]))
-            .attr("fill", "lightgray")
+            .attr("fill", (d,i) => (this.getMonToSun(year.toString()+"-"+month.toString()+"-"+d.toString())===1)?"black":"lightgray")
 
         this.xAxis
             .attr("transform", `translate(${this.margin.left}, ${this.margin.top + this.height})`)
@@ -71,6 +71,10 @@ class SubHistogram {
 
             
     
+    }
+    getMonToSun(dt){
+        let dayweek= new Date(dt).getDay(); 
+        return (dayweek>0 && dayweek<6) ? 0 : 1;
     }
 
     fillingHighlight(justindex)

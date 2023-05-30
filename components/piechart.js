@@ -18,7 +18,7 @@ class PieChart {
         this.svg = d3.select(this.svg);
         this.tooltip = d3.select(this.tooltip);
         this.color = d3.scaleOrdinal()
-        .domain(["1호선","2호선","3호선","4호선","5호선","6호선","7호선","8호선","9호선"])
+        .domain(["1호선","2호선","3호선","4호선","5호선","6호선","7호선","8호선"])
         .range([
             "#0052A4",
             "#00A84D",
@@ -28,7 +28,6 @@ class PieChart {
             "#CD7C2F",
             "#747F00",
             "#E6186C",
-            "#BB8336",
         ]);
         this.svg
             .attr("width", this.width + this.margin.left + this.margin.right)
@@ -214,6 +213,8 @@ class PieChart {
             this.handlers.click(dt)
         }
     }
+
+    
 
     on(eventType, handler) {
         this.handlers[eventType] = handler;

@@ -15,6 +15,7 @@
     <script src="components/subhistogram.js"></script>
     <script src="components/subhistogram2.js"></script>
     <script src="components/subscatterplot.js"></script>
+    <script src="components/linechart.js"></script>
 
     <title>Final Project</title>
     <style>
@@ -32,6 +33,13 @@
             stroke-width: 1;
             stroke: gray;
             r: 5;
+        }
+
+        .custom-table {
+            width: 100%;
+            height: 100%;
+            display: block;
+            overflow: auto;
         }
     </style>
 </head>
@@ -151,16 +159,92 @@
 
         </div>
 
+        <div class="contatiner" id="sc-ratio">
+            <div class="row pt-2">
+                <div class="col-1 text-end pe-2"><strong>Week:</strong></div>
+                <div class="col-11">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="type-encoding" value="midweek" id="y-mi">
+                        <label class="form-check-label" for="x-sl">midweek</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="type-encoding" value="weekend" id="y-we">
+                        <label class="form-check-label" for="x-sw">weekend</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="type-encoding" value="total" id="y-tot" checked>
+                        <label class="form-check-label" for="x-pl">total</label>
+                    </div>
+                </div>
+    
+            </div>
+        </div>
+
+        <div class="container text-center">
+            <div class="row">
+            
+              <div class="col-md-8">
+                <svg width="800" height="400" id="subscatterplot"></svg>
+                <div class="tooltip bs-tooltip-top show" id="sc-tooltip" role="tooltip" style="display:none">
+                  <div class="tooltip-arrow"></div>
+                  <div class="tooltip-inner">
+                    Some tooltip text!
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <table id="stationdata" class="table custom-table" >
+                    <thead>
+                        <tr>
+                          <th scope="col">항목</th>
+                          <th scope="col">내용</th>
+                        </tr>
+                      </thead>
+                    <tbody>
+                      <tr>
+                        <th scope="row">호선</th>
+                        <td>-</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">역명</th>
+                        <td>-</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">승차</th>
+                        <td>-</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">하차</th>
+                        <td>-</td>
+                      </tr>
+                    </tbody>
+                </table>
+              </div>
+            </div>
+        </div>
+                
         <div class="text-center">
-            <svg width="400" height="400", id="scatterplot">
+            
+            <svg width="400" height="400", id="linechart">
 
             </svg>
         </div>
     </main>
     <script>
-        let data,piechart,clickedLines,histogram,histogram2;
+        let data,piechart,clickedLines,histogram,histogram2,scatterplot,clickedCircleInfo,lineChart;
+        let inclickedData,outclickedData;
         let clickedNum=-1;
         let monthyear = -1; //month -1 year 1
+        const table = document.getElementById("stationdata");
+        const scat = document.getElementById("subscatterplot");
+        const linect = document.getElementById("linechart");
+        const scradio = document.getElementById("sc-ratio");
+        const lineCell = table.rows[1].cells[1];   // 호선 셀
+        const stationCell = table.rows[2].cells[1];   // 역명 셀
+        const boardCell = table.rows[3].cells[1];   // 승차 셀
+        const alightCell = table.rows[4].cells[1];   // 하차 셀
+        scat.style.display = "none"
+        table.style.display = "none"
 
         function updateSubHistogramByRadioLine(){
             let yVar = d3.select("input[type=radio][name=y-encoding]:checked").property("value");
@@ -173,7 +257,7 @@
             histogram2.update({},yVar,mVar,0);
         }
 
-
+        
 
 
         function updateSubHistogram(){
@@ -204,7 +288,14 @@
         }
 
         function updateSubScatterPlot(){
-
+            linect.style.display="none";
+            scradio.style.display = ""
+            console.log("change")
+            stationCell.textContent = "-";   // 역명 내용 변경
+            boardCell.textContent ="-";   // 승차 내용 변경
+            alightCell.textContent = "-";   // 하차 내용 변경
+            let wVar = d3.select("input[type=radio][name=type-encoding]:checked").property("value");
+            if(clickedLines) subscatterplot.update(clickedLines,wVar);
         }
         
         function ychange()
@@ -212,11 +303,24 @@
             updatePieChart()
             updateSubHistogramByRadioYear()
             updateSubHistogramTotal()
+            linect.style.display="none";
+
+            lineCell.textContent = "-";   // 호선 내용 변경
+            stationCell.textContent = "-";   // 역명 내용 변경
+            boardCell.textContent ="-";   // 승차 내용 변경
+            alightCell.textContent = "-";   // 하차 내용 변경
+            scat.style.display = "none"
+            table.style.display = "none"
+            scradio.style.display = "none"
         }
 
         function mchange()
         {
             console.log(clickedNum)
+            linect.style.display="none";
+            scat.style.display = "none"
+            table.style.display = "none"
+            scradio.style.display = "none"
             if(clickedNum===1)
             {
                 updatePieChart()
@@ -231,7 +335,12 @@
             }
         }
         
-  
+        function updateLineChart(){
+            let wVar = d3.select("input[type=radio][name=type-encoding]:checked").property("value");
+            if(wVar === "midweek") lineChart.update(clickedCircleInfo,0)
+            else if(wVar === "weekend") lineChart.update(clickedCircleInfo,1)
+            else if(wVar === "total") lineChart.update(clickedCircleInfo,2)
+        }
 
         //derive csv from github save
         Promise.all([
@@ -278,11 +387,17 @@
             piechart.on("click", (clickedItems) => {
                 clickedNum = 1
                 clickedLines=clickedItems;
+
                 updateSubHistogram();
                 updateSubHistogramByRadioLine();
-                // updateSubScatterPlot();
+                updateSubScatterPlot();
+                scat.style.display = "block"
+                table.style.display = "block"
                 // console.log(clickedLines);
-                
+                lineCell.textContent = clickedLines[0]["호선"];   // 호선 내용 변경
+                stationCell.textContent = "-";   // 역명 내용 변경
+                boardCell.textContent ="-";   // 승차 내용 변경
+                alightCell.textContent = "-";   // 하차 내용 변경
             });
 
             histogram2 = new SubHistogram2("#histogram",data);
@@ -296,6 +411,26 @@
             
             d3.selectAll("input[type=radio][name=y-encoding]").on("change", ychange);
             d3.selectAll("input[type=radio][name=m-encoding]").on("change", mchange);
+            d3.selectAll("input[type=radio][name=type-encoding]").on("change", updateSubScatterPlot);
+            subscatterplot= new SubScatterplot("#subscatterplot", "#sc-tooltip");
+            subscatterplot.initialize();
+        
+            subscatterplot.on("click",(clickedCircle)=>{
+                clickedCircleInfo=clickedCircle
+                inclickedData=subscatterplot.gdatax;
+                outclickedData=subscatterplot.gdatay;
+                
+                lineCell.textContent = clickedCircleInfo[0]["호선"];   // 호선 내용 변경
+                stationCell.textContent = clickedCircleInfo[0]["역명"];   // 역명 내용 변경
+                boardCell.textContent =subscatterplot.resultofin;
+                alightCell.textContent = subscatterplot.resultofout;
+                
+                updateLineChart();
+                linect.style.display="";
+            });
+            
+            lineChart = new LineChart("#linechart",data);
+            lineChart.initialize();
         });
         
         

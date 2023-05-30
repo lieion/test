@@ -61,6 +61,7 @@ class SubHistogram2 {
         this.container.selectAll("rect")
             .data(categories)
             .join("rect")
+            .transition()
             .attr("x", d => this.xScale(d))
             .attr("y", d => this.yScale(counts_totalSum[d]))
             .attr("width", this.xScale.bandwidth())

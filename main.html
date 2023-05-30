@@ -16,6 +16,7 @@
     <script src="components/subhistogram2.js"></script>
     <script src="components/subscatterplot.js"></script>
     <script src="components/linechart.js"></script>
+    <script src="components/subdatatable.js"></script>
 
     <title>Final Project</title>
     <style>
@@ -229,23 +230,59 @@
 
             </svg>
         </div>
+        <!-- ["날짜","구분","05~06","06~07","07~08","08~09","09~10","10~11","11~12","12~13","13~14","14~15","15~16","16~17","17~18","18~19","19~20","20~21","21~22","22~23","23~24","24~01","Total"] -->
+        <div id="totaltable" style="overflow: auto">
+            <table class="table table-striped text-center">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>5~6</th>
+                        <th>6~7</th>
+                        <th>7~8</th>
+                        <th>8~9</th>
+                        <th>10~11</th>
+                        <th>11~12</th>
+                        <th>12~13</th>
+                        <th>13~14</th>
+                        <th>14~15</th>
+                        <th>15~16</th>
+                        <th>16~17</th>
+                        <th>17~18</th>
+                        <th>18~19</th>
+                        <th>19~20</th>
+                        <th>20~21</th>
+                        <th>21~22</th>
+                        <th>22~23</th>
+                        <th>23~24</th>
+                        <th>24~1</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="data-table">
+
+                </tbody>
+            </table>
+        </div>
     </main>
     <script>
         let data,piechart,clickedLines,histogram,histogram2,scatterplot,clickedCircleInfo,lineChart;
-        let inclickedData,outclickedData;
+        let inclickedData,outclickedData,dataTable;
         let clickedNum=-1;
         let monthyear = -1; //month -1 year 1
         const table = document.getElementById("stationdata");
         const scat = document.getElementById("subscatterplot");
         const linect = document.getElementById("linechart");
         const scradio = document.getElementById("sc-ratio");
+        const dtble = document.getElementById("totaltable");
         const lineCell = table.rows[1].cells[1];   // 호선 셀
         const stationCell = table.rows[2].cells[1];   // 역명 셀
         const boardCell = table.rows[3].cells[1];   // 승차 셀
         const alightCell = table.rows[4].cells[1];   // 하차 셀
         scat.style.display = "none"
         table.style.display = "none"
-
+        scradio.style.display = "none"
+        dtble.style.display = "none"
         function updateSubHistogramByRadioLine(){
             let yVar = d3.select("input[type=radio][name=y-encoding]:checked").property("value");
             let mVar = d3.select("input[type=radio][name=m-encoding]:checked").property("value");
@@ -289,6 +326,7 @@
 
         function updateSubScatterPlot(){
             linect.style.display="none";
+            dtble.style.display = "none"
             scradio.style.display = ""
             console.log("change")
             stationCell.textContent = "-";   // 역명 내용 변경
@@ -304,7 +342,7 @@
             updateSubHistogramByRadioYear()
             updateSubHistogramTotal()
             linect.style.display="none";
-
+            dtble.style.display = "none"
             lineCell.textContent = "-";   // 호선 내용 변경
             stationCell.textContent = "-";   // 역명 내용 변경
             boardCell.textContent ="-";   // 승차 내용 변경
@@ -321,6 +359,7 @@
             scat.style.display = "none"
             table.style.display = "none"
             scradio.style.display = "none"
+            dtble.style.display = "none"
             if(clickedNum===1)
             {
                 updatePieChart()
@@ -340,6 +379,11 @@
             if(wVar === "midweek") lineChart.update(clickedCircleInfo,0)
             else if(wVar === "weekend") lineChart.update(clickedCircleInfo,1)
             else if(wVar === "total") lineChart.update(clickedCircleInfo,2)
+        }
+
+        function updateDataTable(){
+            dtble.style.display = ""
+            if(clickedCircleInfo) dataTable.update(clickedCircleInfo);
         }
 
         //derive csv from github save
@@ -387,7 +431,7 @@
             piechart.on("click", (clickedItems) => {
                 clickedNum = 1
                 clickedLines=clickedItems;
-
+                dtble.style.display = "none"
                 updateSubHistogram();
                 updateSubHistogramByRadioLine();
                 updateSubScatterPlot();
@@ -426,11 +470,16 @@
                 alightCell.textContent = subscatterplot.resultofout;
                 
                 updateLineChart();
+                updateDataTable();
                 linect.style.display="";
             });
             
             lineChart = new LineChart("#linechart",data);
             lineChart.initialize();
+
+
+            dataTable = new SubDataTable("#data-table");
+
         });
         
         

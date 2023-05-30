@@ -53,7 +53,6 @@ class SubHistogram {
         this.container.selectAll("rect")
             .data(categories)
             .join("rect")
-            .transition()
             .attr("x", d => this.xScale(d))
             .attr("y", d => this.yScale(counts_totalSum[d]))
             .attr("width", this.xScale.bandwidth())
@@ -61,10 +60,12 @@ class SubHistogram {
             .attr("fill", (d,i) => (this.getMonToSun(year.toString()+"-"+month.toString()+"-"+d.toString())===1)?"black":"lightgray")
 
         this.xAxis
+            .transition()       
             .attr("transform", `translate(${this.margin.left}, ${this.margin.top + this.height})`)
             .call(d3.axisBottom(this.xScale));
 
         this.yAxis
+            .transition()
             .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`)
             .call(d3.axisLeft(this.yScale));
         
@@ -80,7 +81,6 @@ class SubHistogram {
     fillingHighlight(justindex)
     {
         this.container.selectAll("rect")
-                    .transition()
                     .attr("fill", "lightgray")
 
         let highlightedRect = this.container.selectAll("rect").filter((d,i) => i+1 === +justindex);

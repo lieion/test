@@ -1,6 +1,6 @@
 class LineChart {
     margin = {
-        top: 50, right: 50, bottom: 50, left: 50
+        top: 50, right: 150, bottom: 50, left: 50
     }
 
     constructor(svg, data, width = 600, height = 250) {
@@ -16,9 +16,10 @@ class LineChart {
         this.xAxis = this.svg.append("g");
         this.yAxis = this.svg.append("g");
         this.xScales = d3.scaleLinear();
-
         this.yScales = d3.scaleLinear();
-
+        this.legend = this.container.append("g")
+            .attr("class", "legend")
+            .attr("transform", `translate(${this.width}, ${this.height / 8})`);
         this.axes = this.container.append("g");
         this.titles = this.container.append("g");
         this.lines = this.container.append("g");
@@ -179,7 +180,7 @@ class LineChart {
             .data([xdata.map(i => i.outmidweek)])
             .join(
                 enter => enter.append("path")
-                .attr("class", "inmidweekline")
+                .attr("class", "outmidweekline")
                 .attr("fill", "none")
                 .attr("stroke", "green")
                 .attr("stroke-width", 2)
@@ -196,7 +197,7 @@ class LineChart {
             .data([xdata.map(i => i.outweekend)])
             .join(
                 enter => enter.append("path")
-                .attr("class", "inweekendline")
+                .attr("class", "outweekendline")
                 .attr("fill", "none")
                 .attr("stroke", "purple")
                 .attr("stroke-width", 2)
@@ -208,7 +209,7 @@ class LineChart {
             )
             .exit()
             .remove();
-
+        let legendData;
         if(state ===0)
         {
             this.container.selectAll(".inmweekend").style("display","none")
@@ -221,6 +222,12 @@ class LineChart {
             this.container.selectAll(".outmidweek").style("display","")
             this.container.selectAll(".outmidweekline").style("display","")
 
+            legendData = [
+                { label: "Get-On(WeekDay)", color: "blue" },
+                { label: "Get-Off(WeekDay)", color: "green" }
+            ];
+              
+              
         }
         else if(state===1)
         {
@@ -233,6 +240,11 @@ class LineChart {
             this.container.selectAll(".outweekendline").style("display","")
             this.container.selectAll(".outmidweek").style("display","none")
             this.container.selectAll(".outmidweekline").style("display","none")
+
+            legendData = [
+                { label: "Get-On(WeekEnd)", color: "red" },
+                { label: "Get-Off(WeekEnd)", color: "purple" }
+            ];
         }
         else if(state===2)
         {
@@ -245,9 +257,43 @@ class LineChart {
             this.container.selectAll(".outweekendline").style("display","")
             this.container.selectAll(".outmidweek").style("display","")
             this.container.selectAll(".outmidweekline").style("display","")
+
+            legendData = [
+                { label: "Get-On(WeekDay)", color: "blue" },
+                { label: "Get-Off(WeekDay)", color: "green" },
+                { label: "Get-On(WeekEnd)", color: "red" },
+                { label: "Get-Off(WeekEnd)", color: "purple" }
+            ];
+
         }
 
         
+        
+        this.legend.selectAll(".legend-item").remove();
+
+        // 범례 항목 생성
+        let legendItems = this.legend.selectAll(".legend-item")
+            .data(legendData)
+            .enter()
+            .append("g")
+            .attr("class", "legend-item")
+            .attr("transform", (d, i) => `translate(0, ${i * 20})`);
+
+        // 범례 색상 사각형
+        legendItems.append("rect")
+            .attr("width", 10)
+            .attr("height", 10)
+            .attr("fill", d => d.color);
+
+        // 범례 텍스트
+        legendItems.append("text")
+            .attr("x", 15)
+            .attr("y", 10)
+            .text(d => d.label);
+
+        
+
+
         this.xAxis
             .attr("transform", `translate(${this.margin.left}, ${this.margin.top + this.height})`)
             .transition()
